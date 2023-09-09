@@ -135,9 +135,9 @@
     },
     {
       "name": "go_router",
-      "rootUri": "file:///home/sumit/.pub-cache/hosted/pub.dev/go_router-10.1.2",
+      "rootUri": "file:///home/sumit/.pub-cache/git/go_router-6bdcd029d2cb84eebde6c87b7f994a925dec626b/",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.1"
     },
     {
       "name": "graphs",
@@ -410,7 +410,7 @@
       "languageVersion": "3.1"
     }
   ],
-  "generated": "2023-09-08T15:54:30.545465Z",
+  "generated": "2023-09-09T16:09:34.492727Z",
   "generator": "pub",
   "generatorVersion": "3.1.0"
 }
