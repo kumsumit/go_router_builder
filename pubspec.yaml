@@ -11,7 +11,7 @@ environment:
   flutter: ">=3.32.0"
 
 dependencies:
-  analyzer: ">=6.9.0 <8.0.0"
+  analyzer: ">=7.6.0 <8.0.0"
   async: ^2.8.0
   # The upper bound is to work around a breaking change in `build` that was not
   # versioned according to semver, and broke `build_test` 2.x. See
