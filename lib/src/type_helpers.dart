@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:source_helper/source_helper.dart';
@@ -83,7 +83,7 @@ String decodeParameter(
 /// Returns the encoded [String] value for [element], if its type is supported.
 ///
 /// Otherwise, throws an [InvalidGenerationSourceError].
-String encodeField(PropertyAccessorElement2 element) {
+String encodeField(PropertyAccessorElement element) {
   for (final _TypeHelper helper in _helpers) {
     if (helper._matchesType(element.returnType)) {
       return helper._encode(
@@ -98,14 +98,14 @@ String encodeField(PropertyAccessorElement2 element) {
 }
 
 /// Returns an AstNode type from a InterfaceElement.
-T? getNodeDeclaration<T extends AstNode>(InterfaceElement2 element) {
+T? getNodeDeclaration<T extends AstNode>(InterfaceElement element) {
   final AnalysisSession? session = element.session;
   if (session == null) {
     return null;
   }
 
   final ParsedLibraryResult parsedLibrary =
-      session.getParsedLibraryByElement2(element.library2) as ParsedLibraryResult;
+      session.getParsedLibraryByElement(element.library) as ParsedLibraryResult;
   final FragmentDeclarationResult? declaration =
       parsedLibrary.getFragmentDeclaration(element.firstFragment);
   final AstNode? node = declaration?.node;
@@ -132,7 +132,7 @@ String compareField(
 }
 
 /// Gets the name of the `const` map generated to help encode [Enum] types.
-String enumMapName(InterfaceType type) => '_\$${type.element3.displayName}EnumMap';
+String enumMapName(InterfaceType type) => '_\$${type.element.displayName}EnumMap';
 
 String _stateValueAccess(
   FormalParameterElement element, Set<String> pathParameters) {
@@ -195,7 +195,7 @@ class _TypeHelperBigInt extends _TypeHelperWithHelper {
 
   @override
   bool _matchesType(DartType type) =>
-      const TypeChecker.fromRuntime(BigInt).isAssignableFromType(type);
+      const TypeChecker.typeNamed(BigInt).isAssignableFromType(type);
 }
 
 class _TypeHelperBool extends _TypeHelperWithHelper {
@@ -229,7 +229,7 @@ class _TypeHelperDateTime extends _TypeHelperWithHelper {
 
   @override
   bool _matchesType(DartType type) =>
-      const TypeChecker.fromRuntime(DateTime).isAssignableFromType(type);
+      const TypeChecker.typeNamed(DateTime).isAssignableFromType(type);
 }
 
 class _TypeHelperDouble extends _TypeHelperWithHelper {
@@ -336,7 +336,7 @@ class _TypeHelperUri extends _TypeHelperWithHelper {
 
   @override
   bool _matchesType(DartType type) =>
-      const TypeChecker.fromRuntime(Uri).isAssignableFromType(type);
+      const TypeChecker.typeNamed(Uri).isAssignableFromType(type);
 }
 
 class _TypeHelperIterable extends _TypeHelperWithHelper {
@@ -381,14 +381,14 @@ class _TypeHelperIterable extends _TypeHelperWithHelper {
       // get correct type for iterable
       String iterableCaster = '';
       String fallBack = '';
-      if (const TypeChecker.fromRuntime(List)
+      if (const TypeChecker.typeNamed(List)
           .isAssignableFromType(parameterElement.type)) {
         iterableCaster += '?.toList()';
         if (!parameterElement.type.isNullableType &&
             !parameterElement.hasDefaultValue) {
           fallBack = '?? const []';
         }
-      } else if (const TypeChecker.fromRuntime(Set)
+      } else if (const TypeChecker.typeNamed(Set)
           .isAssignableFromType(parameterElement.type)) {
         iterableCaster += '?.toSet()';
         if (!parameterElement.type.isNullableType &&
@@ -430,7 +430,7 @@ $fieldName$nullAwareAccess.map((e) => e.toString()).toList()''';
 
   @override
   bool _matchesType(DartType type) =>
-      const TypeChecker.fromRuntime(Iterable).isAssignableFromType(type);
+      TypeChecker.typeNamed(Iterable).isAssignableFromType(type);
 
   @override
   String _compare(String value1, String value2) =>
@@ -479,7 +479,7 @@ extension ParameterElementExtension on FormalParameterElement {
 class NullableDefaultValueError extends InvalidGenerationSourceError {
   /// An error thrown when a default value is used with a nullable type.
   NullableDefaultValueError(
-    Element2 element,
+    Element element,
   ) : super(
           'Default value used with a nullable type. Only non-nullable type can have a default value.',
           todo: 'Remove the default value or make the type non-nullable.',
