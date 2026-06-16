@@ -1,10 +1,10 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 import 'dart:async';
 
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
@@ -16,6 +16,7 @@ const String _routeDataUrl = 'package:go_router/src/route_data.dart';
 
 const Map<String, String> _annotations = <String, String>{
   'TypedGoRoute': 'GoRouteData',
+  'TypedRelativeGoRoute': 'RelativeGoRouteData',
   'TypedShellRoute': 'ShellRouteData',
   'TypedStatefulShellBranch': 'StatefulShellBranchData',
   'TypedStatefulShellRoute': 'StatefulShellRouteData',
@@ -27,14 +28,15 @@ class GoRouterGenerator extends Generator {
   const GoRouterGenerator();
 
   TypeChecker get _typeChecker => TypeChecker.any(
-        _annotations.keys.map((String annotation) =>
-            TypeChecker.fromUrl('$_routeDataUrl#$annotation')),
-      );
+    _annotations.keys.map(
+      (String annotation) => TypeChecker.fromUrl('$_routeDataUrl#$annotation'),
+    ),
+  );
 
   @override
   FutureOr<String> generate(LibraryReader library, BuildStep buildStep) async {
-    final Set<String> values = <String>{};
-    final Set<String> getters = <String>{};
+    final values = <String>{};
+    final getters = <String>{};
 
     generateForAnnotation(library, values, getters);
 
@@ -61,8 +63,9 @@ ${getters.map((String e) => "$e,").join('\n')}
     Set<String> values,
     Set<String> getters,
   ) {
-    for (final AnnotatedElement annotatedElement
-        in library.annotatedWith(_typeChecker)) {
+    for (final AnnotatedElement annotatedElement in library.annotatedWith(
+      _typeChecker,
+    )) {
       final InfoIterable generatedValue = _generateForAnnotatedElement(
         annotatedElement.element,
         annotatedElement.annotation,
@@ -73,25 +76,28 @@ ${getters.map((String e) => "$e,").join('\n')}
   }
 
   InfoIterable _generateForAnnotatedElement(
-    Element2 element,
+    Element element,
     ConstantReader annotation,
   ) {
-    final String typedAnnotation =
-        withoutNullability(annotation.objectValue.type!.getDisplayString());
-    final String type =
-        typedAnnotation.substring(0, typedAnnotation.indexOf('<'));
+    final String typedAnnotation = withoutNullability(
+      annotation.objectValue.type!.getDisplayString(),
+    );
+    final String type = typedAnnotation.substring(
+      0,
+      typedAnnotation.indexOf('<'),
+    );
     final String routeData = _annotations[type]!;
-    if (element is! ClassElement2) {
+    if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
         'The @$type annotation can only be applied to classes.',
         element: element,
       );
     }
 
-    final TypeChecker dataChecker =
-        TypeChecker.fromUrl('$_routeDataUrl#$routeData');
-    if (!element.allSupertypes
-        .any((InterfaceType element) => dataChecker.isExactlyType(element))) {
+    final dataChecker = TypeChecker.fromUrl('$_routeDataUrl#$routeData');
+    if (!element.allSupertypes.any(
+      (InterfaceType element) => dataChecker.isExactlyType(element),
+    )) {
       throw InvalidGenerationSourceError(
         'The @$type annotation can only be applied to classes that '
         'extend or implement `$routeData`.',
@@ -99,7 +105,9 @@ ${getters.map((String e) => "$e,").join('\n')}
       );
     }
 
-    return RouteBaseConfig.fromAnnotation(annotation, element)
-        .generateMembers();
+    return RouteBaseConfig.fromAnnotation(
+      annotation,
+      element,
+    ).generateMembers();
   }
 }
